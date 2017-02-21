@@ -1,0 +1,10 @@
+export ASN1C_URL=https://github.com/open-io/asn1c.git
+export GRIDINIT_URL=https://github.com/open-io/gridinit.git
+export OIOSDS_URL=https://github.com/open-io/oio-sds.git
+export SWIFT_URL=https://git.openstack.org/openstack/swift
+export OIOSWIFT_URL=https://github.com/open-io/oio-swift.git
+export OIOFS_URL=git@gitlab.openio.io:openio/oio-fs.git
+export PUPPET_OIOSDS_URL=https://github.com/open-io/puppet-openiosds.git
+export OIODOCS_URL=https://github.com/open-io/oio-docs.git
+export OIOJAVA_URL=https://github.com/open-io/oio-api-java.git
+export CYRUS_URL=https://github.com/open-io/cyrus-imapd.git
