@@ -23,29 +23,15 @@ def do_connect(ip, username, key):
     client.connect(ip, username='ubuntu', pkey=key)
     return client
 
-def do_prepare(ip, username, keyfile, keypass):
+def do_run(ip, username, keyfile, keypass):
     key = RSAKey.from_private_key_file(keyfile, password=keypass)
 
     client = do_connect(ip, username, key)
 
     # upload minimal requirements stuff
-    upload_file(client, 'install.sh',  0o0555) # FIXME: use proper perms
+    upload_file(client, 'run.sh',  0o0555) # FIXME: use proper perms
 
-    # install Docker
-    print("install docker")
-    (stdin, stdout, stderr) = client.exec_command('./install.sh')
-    for line in stdout:
-        print(line, end="")
-
-    print("done")
-    client.close()
-
-    # close and reopen connection to refresh ID and Groups
-    client = do_connect(ip, username='ubuntu', key=key)
-
-    upload_file(client, 'build.sh', 0o0555)
-    print("build docker image")
-    (stdin, stdout, stderr) = client.exec_command('./build.sh')
+    (stdin, stdout, stderr) = client.exec_command('./run.sh', get_pty=True)
 
     for line in stdout:
         print(line, end="")
@@ -58,4 +44,4 @@ if __name__ == "__main__":
         keypass = sys.argv[4]
     else:
         keypass = None
-    do_prepare(ip, username, keyfile, keypass)
+    do_run(ip, username, keyfile, keypass)

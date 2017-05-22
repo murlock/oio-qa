@@ -22,7 +22,7 @@ function start_docker() {
 
     docker rm test_s3 || true
     # FIXME we should use docker run -d and use --log-driver
-    docker run -p 127.0.0.1:5000:5000 --name test_s3 git >output_$TEST.log 2>&1 &
+    docker run -p 127.0.0.1:5000:5000 --name test_s3 sds-source:${DOCKER_TAG} >output_$TEST.log 2>&1 &
 
     # FIXME we should test availability of port 5000 instead of this hack
     echo -n "Init "
