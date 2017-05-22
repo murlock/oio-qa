@@ -81,6 +81,7 @@ def create_server(conn):
                                                 'uuid': volume.id,
                                                 'source_type': 'volume',
                                                 'destination_type': 'volume',
+                                                'delete_on_termination': True, # FIXME: use option for post mortem
                                             }],
                                             flavor_id=flavor.id,
                                             networks=[{"uuid": network.id}],
