@@ -71,6 +71,7 @@ function run_s3ceph() {
     S3TEST_CONF=../ceph-s3.cfg ./virtualenv/bin/nosetests -v 2>&1 | tee ../test_s3ceph.log | grep -Eb1 'ok|FAIL|ERROR|SKIP' | ../color.sh
 
     stop_docker
+    cd ..
 }
 
 

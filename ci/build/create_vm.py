@@ -10,6 +10,8 @@ from time import time
 from openstack import connection, exceptions
 from openstack import utils
 
+from common import retrieve_or_create_keypair
+
 utils.enable_logging(debug=False, stream=sys.stdout)
 
 CONN = connection.Connection(auth_url=os.getenv("OS_AUTH_URL"),
@@ -17,29 +19,12 @@ CONN = connection.Connection(auth_url=os.getenv("OS_AUTH_URL"),
                              username=os.getenv("OS_USERNAME"),
                              password=os.getenv("OS_PASSWORD"))
 
-# for container in conn.object_store.containers():
-#    print(container.name)
-
-#for item in dir(conn):
-#    print(str(item), type(item))
-
-#print(conn.session.get_project_id())
-
 SERVER_NAME = "test-michael"
 VOLUME_NAME = "test-michael-vol"
 IMAGE_NAME = "Ubuntu-16.04-amd64-20170330"
 FLAVOR_NAME = "c1.m1.d1"
 NETWORK_NAME = "private_network"
 KEYPAIR_NAME = "mbonfils"
-
-def retrieve_or_create_keypair(conn, name, create_if_missing=False):
-    keypair = conn.compute.find_keypair(name)
-    if not keypair:
-        if not create_if_missing:
-            raise ValueError("Missing Keypair %s" % name)
-        raise Exception("TODO")
-    return keypair
-
 
 def create_server(conn):
     print("Create Server:")
@@ -69,7 +54,7 @@ def create_server(conn):
 
     flavor = conn.compute.find_flavor(FLAVOR_NAME)
     network = conn.network.find_network(NETWORK_NAME)
-    keypair = retrieve_or_create_keypair(conn, name=KEYPAIR_NAME)
+    (keypair, created) = retrieve_or_create_keypair(conn, name=KEYPAIR_NAME, create_if_missing=True)
 
 
     def _create_server():
@@ -107,4 +92,13 @@ def create_server(conn):
 
     print("Instance is ready at %s with KEYPAIR %s" % (server_ip.floating_ip_address, KEYPAIR_NAME))
 
-create_server(CONN)
+    return {
+        'ip': server_ip.floating_ip_address,
+        'keypriv': keypair.private_key,
+        'keypub': keypair.public_key,
+        'keyname': KEYPAIR_NAME,
+        'keycreated': created,
+    }
+
+if __name__ == "__main__":
+    create_server(CONN)

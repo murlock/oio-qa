@@ -5,31 +5,15 @@ import sys
 
 from paramiko import SSHClient, RSAKey, AutoAddPolicy
 
+from common import ssh_connect, upload_file, ssh_get_key
 
-def upload_file(client, filename, perm=0o0400):
-    print("uploading", filename)
-    sftp = client.open_sftp()
-    fp = sftp.file(filename, mode='w')
-    fp.write(open(filename).read())
-    fp.close()
+def do_prepare(ip, username, keystr, keypass=None):
+    key = ssh_get_key(keystr, keypass)
 
-    sftp.chmod(filename, 0o0777)
-    sftp.close()
-    print("success")
-
-def do_connect(ip, username, key):
-    client = SSHClient()
-    client.set_missing_host_key_policy(AutoAddPolicy())
-    client.connect(ip, username='ubuntu', pkey=key)
-    return client
-
-def do_prepare(ip, username, keyfile, keypass):
-    key = RSAKey.from_private_key_file(keyfile, password=keypass)
-
-    client = do_connect(ip, username, key)
+    client = ssh_connect(ip, username, key)
 
     # upload minimal requirements stuff
-    upload_file(client, 'install.sh',  0o0555) # FIXME: use proper perms
+    upload_file(client, 'install.sh',  0o0555)
 
     # install Docker
     print("install docker")
@@ -41,21 +25,10 @@ def do_prepare(ip, username, keyfile, keypass):
     client.close()
 
     # close and reopen connection to refresh ID and Groups
-    client = do_connect(ip, username='ubuntu', key=key)
+    client = ssh_connect(ip, username='ubuntu', key=key)
 
     upload_file(client, 'build.sh', 0o0555)
     print("build docker image")
     (stdin, stdout, stderr) = client.exec_command('./build.sh')
-
     for line in stdout:
         print(line, end="")
-
-if __name__ == "__main__":
-    ip = sys.argv[1]
-    username = sys.argv[2]
-    keyfile = sys.argv[3]
-    if len(sys.argv) >= 5:
-        keypass = sys.argv[4]
-    else:
-        keypass = None
-    do_prepare(ip, username, keyfile, keypass)
