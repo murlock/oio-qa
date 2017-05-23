@@ -9,12 +9,17 @@
 # if set, it assume that a docker image is already running
 SKIP_DOCKER=$1
 DOCKER_TAG=latest
+OUTPUT_RESULT=$HOME/output
 
+OUTPUT_CUR_TEST=
 set -e
 set -x
 
 function start_docker() {
     local TEST=$1
+
+    OUTPUT_CUR_TEST=${OUTPUT_RESULT}/${TEST}
+    mkdir -p ${OUTPUT_CUR_TEST}
 
     if [ ! -z $SKIP_DOCKER ]; then
         return
@@ -22,7 +27,7 @@ function start_docker() {
 
     docker rm test_s3 || true
     # FIXME we should use docker run -d and use --log-driver
-    docker run -p 127.0.0.1:5000:5000 --name test_s3 sds-source:${DOCKER_TAG} >output_$TEST.log 2>&1 &
+    docker run -p 127.0.0.1:5000:5000 --name test_s3 sds-source:${DOCKER_TAG} >${OUTPUT_CUR_TEST}/docker_output.log 2>&1 &
 
     # FIXME we should test availability of port 5000 instead of this hack
     echo -n "Init "
@@ -51,7 +56,7 @@ function run_s3cmd() {
         cd s3cmd
     fi
 
-    ./run-tests.py --config ../s3cfg_port_5000 | tee ../test_s3cmd.log
+    ./run-tests.py --config ../s3cfg_port_5000 | tee ${OUTPUT_CUR_TEST}/test_s3cmd.log
     stop_docker
     cd ..
 }
@@ -68,7 +73,7 @@ function run_s3ceph() {
     fi
 
     ./bootstrap
-    S3TEST_CONF=../ceph-s3.cfg ./virtualenv/bin/nosetests -v 2>&1 | tee ../test_s3ceph.log | grep -Eb1 'ok|FAIL|ERROR|SKIP' | ../color.sh
+    S3TEST_CONF=../ceph-s3.cfg ./virtualenv/bin/nosetests -v 2>&1 | tee ${OUTPUT_CUR_TEST}/test_s3ceph.log | grep -Eb1 'ok|FAIL|ERROR|SKIP' | ../color.sh
 
     stop_docker
     cd ..
