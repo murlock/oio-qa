@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 
 
+import tempfile
 import time
 import uuid
 
-from common import remove_keypair
+from common import remove_keypair, download_directory
+from common import ssh_connect, ssh_get_key
 
 import create_vm
 from prepare_vm import do_prepare
 from run_vm import do_run
+from html import create_html_report
 
 
 def run_job():
@@ -37,15 +40,26 @@ def run_job():
            'ubuntu',
            properties['keypriv'])
 
-    # TODO: retrieve artifacts here
-    # and upload somewhere
-    # should contains:
-    # - outputs of everything we can
-    # - outputs of tests (with ok/fail/skip, ...)
+    tmpdir = tempfile.mkdtemp('buildres-')
+
+    # download artifacts
+    key = ssh_get_key(properties['keypriv'])
+    client = ssh_connect(properties['ip'], 'ubuntu', key)
+    download_directory(client, "output/", tmpdir)
+    # build webpage
+    create_html_report(tmpdir)
+
+    # and upload somewhere (with properies like branch/tag/commit id/PR)
+    print("should upload", tmpdir)
+
+    # remove tmpdir
+    print("should remove", tmpdir)
 
     if properties['keycreated']:
         print("Remove temporary key")
         remove_keypair(create_vm.CONN, properties['keyname'])
+
+    create_vm.delete_server(create_vm.CONN, properties['server_id'])
 
 if __name__ == "__main__":
     run_job()

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+import os
+import stat
 try:
     import cStringIO as StringIO
 except:
@@ -24,7 +26,7 @@ def remove_keypair(conn, name):
 def ssh_connect(ip, username, key):
     client = SSHClient()
     client.set_missing_host_key_policy(AutoAddPolicy())
-    client.connect(ip, username='ubuntu', pkey=key)
+    client.connect(ip, username=username, pkey=key)
     return client
 
 
@@ -35,9 +37,38 @@ def upload_file(client, filename, perm=0o0400):
     fp.write(open(filename).read())
     fp.close()
 
-    sftp.chmod(filename, 0o0777)
+    sftp.chmod(filename, perm)
     sftp.close()
     print("success")
+
+def download_directory(client, path, dest):
+    sftp = client.open_sftp()
+
+    def is_directory(path):
+        try:
+            return stat.S_ISDIR(sftp.stat(path).st_mode)
+        except IOError:
+             #Path does not exist, so by definition not a directory
+            print("Testing invalid directory")
+            return False
+
+    def parse_directory(path, dest):
+        item_list = sftp.listdir(path)
+        dest = str(dest)
+
+        if not os.path.isdir(dest):
+            os.mkdir(dest)
+
+        for item in item_list:
+            item = str(item)
+
+            if is_directory(path + "/" + item):
+                parse_directory(path + "/" + item, dest + "/" + item)
+            else:
+                print("retrieve {0}/{1}".format(path, item))
+                sftp.get(path + "/" + item, dest + "/" + item)
+
+    parse_directory(path, dest)
 
 def ssh_get_key(keystr, keypass=None):
     buf = StringIO(keystr)

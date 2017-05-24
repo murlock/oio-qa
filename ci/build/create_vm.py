@@ -98,7 +98,11 @@ def create_server(conn):
         'keypub': keypair.public_key,
         'keyname': KEYPAIR_NAME,
         'keycreated': created,
+        'server_id': server.id
     }
+
+def delete_server(conn, server_id):
+    conn.compute.delete_server(server_id)
 
 if __name__ == "__main__":
     create_server(CONN)
