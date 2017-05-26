@@ -4,7 +4,7 @@ from __future__ import print_function
 import os
 import stat
 try:
-    import cStringIO as StringIO
+    from cStringIO import StringIO
 except:
     from io import StringIO
 
