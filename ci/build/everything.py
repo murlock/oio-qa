@@ -6,7 +6,7 @@ import time
 import uuid
 
 from common import remove_keypair, download_directory
-from common import ssh_connect, ssh_get_key
+from common import ssh_connect, ssh_get_key, upload_result
 
 import create_vm
 from prepare_vm import do_prepare
@@ -29,7 +29,6 @@ def run_job():
     # TODO: ensure that Instance is started and available
     time.sleep(20)
 
-
     print("Prepare and build Docker template")
     do_prepare(properties['ip'],
                'ubuntu',
@@ -40,7 +39,7 @@ def run_job():
            'ubuntu',
            properties['keypriv'])
 
-    tmpdir = tempfile.mkdtemp('buildres-')
+    tmpdir = tempfile.mkdtemp()
 
     # download artifacts
     key = ssh_get_key(properties['keypriv'])
@@ -49,14 +48,14 @@ def run_job():
     # build webpage
     create_html_report(tmpdir)
 
-    # and upload somewhere (with properies like branch/tag/commit id/PR)
-    print("should upload", tmpdir)
+    # and upload somewhere
+    # TODO: include properies like branch/tag/commit id/PR/time consumed
+    upload_result(tmpdir, os.getenv('RESULT_UPLOAD_URL'))
 
     # remove tmpdir
-    print("should remove", tmpdir)
+    shutil.rmtree(tmpdir)
 
     if properties['keycreated']:
-        print("Remove temporary key")
         remove_keypair(create_vm.CONN, properties['keyname'])
 
     create_vm.delete_server(create_vm.CONN, properties['server_id'])

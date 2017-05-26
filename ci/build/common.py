@@ -3,12 +3,15 @@
 from __future__ import print_function
 import os
 import stat
+from zipfile import ZipFile
 try:
     from cStringIO import StringIO
 except:
     from io import StringIO
+from io import BytesIO
 
 from paramiko import SSHClient, RSAKey, AutoAddPolicy
+import requests
 
 def retrieve_or_create_keypair(conn, name, create_if_missing=False):
     keypair = conn.compute.find_keypair(name, ignore_missing=True)
@@ -74,3 +77,28 @@ def ssh_get_key(keystr, keypass=None):
     buf = StringIO(keystr)
     key = RSAKey.from_private_key(buf, password=keypass)
     return key
+
+def zip_in_memory(result):
+    tmpzip = BytesIO()
+    myzip = ZipFile(tmpzip, mode="w")
+    result = os.path.abspath(result)
+
+    for base, _, fnames in os.walk(result):
+        for fname in fnames:
+            path = os.path.abspath(os.path.join(base, fname))
+            myzip.write(path, path[len(result):])
+    myzip.close()
+    tmpzip.seek(0)
+    return tmpzip
+
+def upload_result(result, url):
+    # retrieve CSRF token
+    content = zip_in_memory(result)
+    get = requests.get(url)
+    post = requests.post(
+        url,
+        files={"result": content},
+        data={'csrfmiddlewaretoken': get.cookies['csrftoken']},
+        cookies=get.cookies)
+    # any other code than 20x is considered as an error
+    return (post.status_code // 100) == 2
