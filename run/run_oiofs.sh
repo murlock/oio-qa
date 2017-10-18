@@ -20,7 +20,7 @@ function init() {
 
 function run_oiofs_pjfs() {
     init oiofs_pjfs
-    $HOME/oio-fs/docker/run.sh
+    $HOME/oio-fs/docker/run.sh  | tee ${OUTPUT_CUR_TEST}/test_oiofs_pjfs.log
 }
 
 
