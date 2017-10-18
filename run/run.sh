@@ -7,12 +7,6 @@ echo "127.0.0.1 ubuntu-s3cmd-autotest-1.localhost ubuntu-s3cmd-autotest-2.localh
 unset LC_ADDRESS  LC_IDENTIFICATION  LC_MEASUREMENT  LC_MONETARY  LC_NAME  LC_NUMERIC  LC_PAPER  LC_TELEPHONE  LC_TIME
 
 
-if [ ! -d oio-qa ]; then
-    git clone https://github.com/murlock/oio-qa.git -b ci_draft
-fi
-cd oio-qa/ci/run
-./run_s3.sh
-
-
-# OIO-FS
-./run_oiofs.sh
+for i in run_*; do
+    ./$i
+done
