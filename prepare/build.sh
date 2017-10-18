@@ -21,6 +21,12 @@ cd $HOME
 if [ -d oiofs ]; then
     rm -rf oiofs
 fi
+
+if [ -f "$HOME/.env" ]; then
+    . $HOME/.env
+fi
+
+
 if [ -z "${GITHUB_TOKEN}" ]; then
     echo "No GITHUB Token, cannot interacte with private repository"
 else
