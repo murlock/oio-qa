@@ -18,10 +18,10 @@ function init() {
     mkdir -p ${OUTPUT_CUR_TEST}
 }
 
-function run_oiofs_pjfs() {
-    init oiofs_pjfs
-    $HOME/oio-fs/docker/run.sh  | tee ${OUTPUT_CUR_TEST}/test_oiofs_pjfs.log
+function run_oiofs_pjdfstest() {
+    init oiofs_pjdfstest
+    $HOME/oio-fs/docker/run.sh | tee ${OUTPUT_CUR_TEST}/test_oiofs_pjdfstest.log
 }
 
 
-run_oiofs_pjfs
+run_oiofs_pjdfstest
